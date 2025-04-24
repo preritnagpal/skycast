@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@400..800&display=swap" rel="stylesheet">
+  <title>India Weather App</title>
+  <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+  <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <img src="logo.png" alt="Weather Icon">
+      <h4>SkyCast</h4>
+      <div class="inputclass">
+        <i class="fa-solid fa-magnifying-glass" style="color: blue;"></i>
+        <input type="text" id="search-input" placeholder="Search for Location..." autocomplete="off">
+      </div>
+      <button id="search-button"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+    <div class="buton">
+      <div class="butonwet">
+        <div class="ione">
+          <i class="fa-solid fa-cloud"></i>
+        </div>
+          <p>Weather</p>
+      </div>
+      
+      <div class="butonone" onclick="changeOverlay('temp')">
+        <div class="ione">
+          <i class="fa-solid fa-temperature-three-quarters temperature-icon"></i>
+        </div>
+          <p>Temperature</p>
+      </div>
+      <div class="butonone" onclick="changeOverlay('pressure')">
+        <div class="ione">
+          <i class="fa-solid fa-arrow-down"></i>
+        </div>
+          <p>Air Pressure</p>
+      </div>
+      <div class="butonone" onclick="changeOverlay('wind')">
+        <div class="ione">
+          <i class="fa-solid fa-wind"></i>
+        </div>
+          <p>Wind</p>
+      </div>
+      <div id="refreshLocation">
+        <div class="ione">
+          <i class="fa-solid fa-rotate-right"></i>
+        </div>
+          <p>Refresh</p>
+      </div>
+  </div>
+  <div class="share" onclick="copyToClipboard(this)" onmouseenter="resetTooltip(this)">
+    <div>
+      <i class="fa-solid fa-up-right-from-square" style="color: #000000;"></i>
+    </div>
+    <span class="tooltip">Click to Copy</span>
+  </div>
+  
+    <div class="setting">
+      <div>
+        <i class="fa-solid fa-gear" style="color: #000000;"></i>
+      </div>
+    </div>
+
+    <div class="home-bar">
+      <a class="home">Home</a>
+      <a>About</a>
+      <a>Developer</a>
+    </div>
+
+    <div class="temp-bar">
+      <div class="tempone"><p>°F</p><i class="fa-solid fa-greater-than" style="color: #0a0a0a;"></i></div>
+      <div class="temptwo"><p>120</p></div>
+      <div class="tempthree"><p>100</p></div>
+      <div class="tempfour"><p>80</p></div>
+      <div class="tempfive"><p>70</p></div>
+      <div class="tempsix"><p>60</p></div>
+      <div class="tempseven"><p>60</p></div>
+      <div class="tempeight"><p>40</p></div>
+      <div class="tempnine"><p>30</p></div>
+      <div class="tempten"><p>20</p></div>
+      <div class="tempelv"><p>10</p></div>
+      <div class="temptwe"><p>0</p></div>
+      <div class="tempthir"><p>-10</p></div>
+      <div class="tempfor"><p>-20</p></div>
+      <div class="tempfif"><p>-40</p></div>
+    </div>
+
+    <div class="temp-bar2">
+      <div class="tempone2"><p>°C</p><i class="fa-solid fa-greater-than" style="color: #0a0909;"></i></div>
+      <div class="temptwo2"><p>60</p></div>
+      <div class="tempthree2"><p>40</p></div>
+      <div class="tempfour2"><p>30</p></div>
+      <div class="tempfive2"><p>25</p></div>
+      <div class="tempsix2"><p>20</p></div>
+      <div class="tempseven2"><p>15</p></div>
+      <div class="tempeight2"><p>10</p></div>
+      <div class="tempnine2"><p>5</p></div>
+      <div class="tempten2"><p>0</p></div>
+      <div class="tempelv2"><p>-5</p></div>
+      <div class="temptwe2"><p>-10</p></div>
+      <div class="tempthir2"><p>-15</p></div>
+      <div class="tempfor2"><p>-20</p></div>
+      <div class="tempfif2"><p>-40</p></div>
+    </div>
+
+    <div class="Weat" style="display: none;" >
+      <div class="weatone">
+        <p><strong>Location</strong></p>
+        <div class="weatonecross">
+          <i class="fa-solid fa-xmark" style="color: #ffffff;"></i>
+        </div>
+      </div>
+      <div class="weattwo">
+        <p><span id="location">Fetching...</span></p>
+      </div>
+      <div class="weatthree">
+        <p>Lat.: <span id="latitude">Fetching...</span> / Lon.: <span id="longitude">Fetching...</span></p>
+      </div>
+      <div class="weatfour">
+        <p>Current Date / time: <span id="datetime">Fetching...</span></p>
+      </div>
+      <div class="weatfive">
+        <p>CURRENT WEATHER</p>
+        <p>FORECAST</p>
+        <p>SUN AND MOON</p>
+      </div>
+      <div class="underline"></div>
+      <div class="sixseven">
+        <div class="weatsix">
+          <img id="weather-icon" src="default.png" alt="" width="100">
+          <p><span id="temp">...</span></p>
+          <div class="weatsixone">
+            <p>Wind Speed: <span id="wind-speed">...</span></p>
+          </div>
+        </div>
+        <div class="weatseven">
+          <div class="son">
+            <p>Weather:</p>
+            <p><span id="weather">...</span></p>
+          </div>
+          <div class="son">
+            <p>Air Pressure:</p>
+            <p><span id="pressure">...</span></p>
+          </div>
+          <div class="son">
+            <p>Visibility:</p>
+            <p><span id="visibility">...</span></p>
+          </div>
+          <div class="son">
+            <p>Humidity:</p>
+            <p><span id="humidity">...</span></p>
+          </div>
+          <div class="son">
+            <p>Rain</p>
+            <p><span id="rain">...</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="cal">
+        <p>Calculated from nearby stations</p>
+      </div>
+      <div id="air-quality" class="air">
+        <video class="bg-video" autoplay loop muted playsinline>
+            <source src="video/air.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    
+        <div class="air-content">
+          <div class="airqlty">
+            <h3>Air Quality</h3>
+            <p id="aqi-description">Data not available</p>
+          </div>
+          <div class="airqlty2">
+            <img id="aqi-image" src="default.png" alt="AQI Image">
+            <div class="content">
+              <div class="contentone">
+                <h6>Air Pollutant Levels</h6>
+                <div class="arrow"><i class="fa-solid fa-arrow-right fa-rotate-by" style="color: #333; --fa-rotate-angle: 330deg;"></i></div>
+              </div>
+              <div class="contenttwo">
+                <div class="aq">
+                  <p>AQI:<span id="aqi-value">N/A</span></p>
+                </div>
+                <div class="cono">
+                    <p id="pm25">CO: --</p>
+                    <p id="pm10">NO2: --</p>
+                    <p id="co">CO: --</p>
+                    <p id="no2">NO2: --</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <p id="sunset">Sunset: --</p>
+    <div class="sun">
+      <div class="sun1"> 
+        <div class="sunonein">
+          <div class="sunimg"></div>
+            <p id="sunrise">Sunrise: --</p>
+        </div>
+        <p id="sunrise">Sunrise: --</p>
+      </div>
+      <div class="sun2">
+        <div class="suntwoin">
+
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+    <div class="about" style="display: none;">
+      <div class="aboutone">
+        <p><strong>About Our Weather Website</strong></p>
+        <div class="aboutcross">
+          <i class="fa-solid fa-xmark" style="color: #ffffff;"></i>
+        </div>
+      </div>
+      <div class="abouttext">
+        <p>Welcome to <span>SkyCast</span>, your ultimate weather-tracking platform designed to provide real-time and 
+          accurate weather updates for any location. Whether you're planning a trip, checking daily forecasts, 
+          or analyzing past weather trends, our website delivers all the essential information you need with 
+          precision and ease.
+        </p>
+      </div>
+      <div class="abouttwo">
+        <h6>Features of SkyCast</h6>
+        <ul>
+          <li><span>Weather Updates: </span>Get real-time temperature, humidity, wind speed, and weather conditions for any location worldwide.</li>
+          <li><span>Interactive Map Integration: </span>Explore a dynamic Windy API powered weather map that lets you visualize wind patterns, storm formations, and temperature variations globally.</li>
+          <li><span>GPS-Based Location Tracking: </span>Instantly detect your current location and view detailed weather data without manual searching.</li>
+          <li><span>City Search Functionality: </span>Search for any city worldwide and retrieve up-to-date weather conditions and forecasts instantly.</li>
+          <li><span>Historical Weather Data: </span>Access past weather records to analyze temperature trends and climatic changes over the last five days.</li>
+          <li><span>Rain Prediction & Forecasts: </span>Stay ahead of unpredictable weather with accurate rainfall predictions and multi-day weather forecasts.</li>
+          <li><span>Auto-Refresh Feature: </span>Keep your weather data updated at the click of a button with real-time refresh capabilities.</li>
+        </ul>
+      </div>
+      <div class="aboutthree">
+        <p>
+          At <span>SkyCast</span>, we strive to make weather tracking simple, efficient, and accessible. 
+          Whether you're a traveler, a researcher, or just someone who wants to check the weather before 
+          heading out, we've got you covered!
+
+          <span>Stay informed, stay prepared! ☁🌞🌧</span>
+        </p>
+      </div>
+      <div class="copy">
+        <p>&copy; 2025 SkyCast. All rights reserved.</p>
+      </div>
+    </div>
+
+    <div class="contact" style="display: none;">
+      <div class="contactone">
+        <p><strong>Developed By</strong></p>
+        <div class="contactcross">
+          <i class="fa-solid fa-xmark" style="color: #ffffff;"></i>
+        </div>
+      </div>
+      <div class="dev">
+        <div class="prerit">
+          <div class="image">
+            <img src="images/preritcroped.png">
+            <p>Prerit Nagpal</p>
+          </div>
+          <div class="underline"></div>
+          <div class="para">
+            <div class="para1">
+              <p>Frontend Developer</p>
+            </div>
+            <div class="para2">
+              <p>Founder & Developer of SkyCast, passionate about technology and weather analytics, aiming to make weather data more interactive and accessible.
+                  Dedicated to enhancing user experience with real-time insights and innovative features.</p>
+            </div>
+            <div class="social">
+              <ul>
+                  <li><a href="https://www.linkedin.com/in/preritnagpal" target="_blank"><i class="fab fa-linkedin"></i></a></li>
+                  <li><a href="https://github.com/preritnagpal/" target="_blank" class="github"><i class="fab fa-github"></i></a></li>
+              </ul>
+          </div>
+          
+          </div>
+        </div>
+        <div class="abhi">
+          <div class="image">
+            <img src="images/abhi.jpg">
+            <p>Abhishek Sharma</p>
+          </div>
+          <div class="underline"></div>
+          <div class="para">
+            <div class="para1">
+              <p>Android Developer</p>
+            </div>
+            <div class="para2">
+              <p>Lead Android Developer, bringing SkyCast to mobile with a seamless, intuitive user experience. 
+                Passionate about building high-performance apps that enhance engagement and ensure a smooth, responsive, and innovative interface effortlessly.</p>
+            </div>
+            <div class="social">
+              <ul>
+                  <li><a href="https://www.linkedin.com/in/abhisheksharma62/" target="_blank"><i class="fab fa-linkedin"></i></a></li>
+                  <li><a href="https://github.com/Abhisheks006" target="_blank" class="github"><i class="fab fa-github"></i></a></li>
+              </ul>
+          </div>
+          
+          </div>
+        </div>
+      </div>
+      <div class="copy">
+        <p>&copy; 2025 SkyCast. All rights reserved.</p>
+      </div>
+    </div>
+
+    <!-- Windy Map -->
+    <div id="windy"></div>
+
+  </div>
+
+
+
+  <script src="script.js"></script>
+  <script>
+windyInit({
+    key: 'M8Eacx0Eci30AeTd1y0eZTLBlaxAfN91',  // Replace with your Windy API key
+    lat: 28.7041, 
+    lon: 77.1025,
+    zoom: 5,
+    overlay: 'wind', 
+}, function(windyAPI) {  // Callback function
+    const { map, store, overlays } = windyAPI; // Destructuring Windy API objects
+
+    window.store = store; // Global store reference
+
+    // Function to change overlays dynamically
+    window.changeOverlay = function(layer) {
+        store.set('overlay', layer);
+    };
+});
+
+
+
+
+
+        
+</script>
+</body>
+</html>

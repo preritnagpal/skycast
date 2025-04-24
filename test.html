@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; height: 100%; }
+        #map { height: 100vh; width: 100vw; }
+        .search-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <input type="text" class="search-bar" id="search" placeholder="Search city/state/country..." onkeyup="searchLocation()">
+    <div class="info-panel" id="info">Click on a location to get weather...</div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var apiKey = "cec21a77d9b4645d5ae017f8633ff999";
+        var map = L.map('map').setView([20, 78], 5); // Default focus on India
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+        var marker;
+
+        function updateWeather(lat, lon) {
+            fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.main) {
+                        document.getElementById('info').innerHTML = `
+                            <strong>Weather Info:</strong><br>
+                            Temp: ${data.main.temp}°C<br>
+                            Humidity: ${data.main.humidity}%<br>
+                            Wind: ${data.wind.speed} km/h<br>
+                            ${new Date().toLocaleString()}
+                        `;
+                    } else {
+                        document.getElementById('info').innerHTML = "Weather data not available";
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('info').innerHTML = "Error fetching weather data";
+                });
+        }
+
+        function searchLocation() {
+            let query = document.getElementById('search').value;
+            if (!query) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+                .then(res => res.json())
+                .then(locations => {
+                    if (locations.length > 0) {
+                        let { lat, lon } = locations[0];
+                        map.setView([lat, lon], 6);
+                        updateWeather(lat, lon);
+                        
+                        // Remove existing marker if present
+                        if (marker) {
+                            map.removeLayer(marker);
+                        }
+                        // Add new marker with highlight effect
+                        marker = L.marker([lat, lon], {color: 'red'}).addTo(map)
+                            .bindPopup(`<b>${query}</b>`).openPopup();
+                    } else {
+                        document.getElementById('info').innerHTML = "Location not found";
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('info').innerHTML = "Error searching location";
+                });
+        }
+
+        map.on('click', function(e) {
+            updateWeather(e.latlng.lat, e.latlng.lng);
+            
+            // Remove existing marker if present
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            // Add new marker on click location
+            marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
+                .bindPopup(`Lat: ${e.latlng.lat}, Lon: ${e.latlng.lng}`).openPopup();
+        });
+    </script>
+</body>
+</html>
