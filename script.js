@@ -551,7 +551,7 @@ function changeLayer(layerName) {
 
 
 function copyToClipboard(element) {
-    const projectLink = "https://yourprojectlink.com"; // Replace with your actual project link
+    const projectLink = "https://preritnagpal.github.io/skycast/";
     const tooltip = element.querySelector(".tooltip"); // Get tooltip inside the clicked .share div
 
     navigator.clipboard.writeText(projectLink)
